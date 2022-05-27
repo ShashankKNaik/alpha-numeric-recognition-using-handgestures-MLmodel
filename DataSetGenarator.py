@@ -1,13 +1,3 @@
-"""
-Popular algorithms that can be used for multi-class classification include:
-
-k-Nearest Neighbors.
-Decision Trees.
-Naive Bayes.
-Random Forest.
-Gradient Boosting.
-"""
-
 import time
 import cv2
 import HandTrackingModule as htm
@@ -43,12 +33,11 @@ while True:
             arr.append(int(math.sqrt((lmList[i][0]-m[0])**2 + (lmList[i][1]-m[1])**2)) * var)
         
         f = open("data.txt", "a")
-        f.write("B,"+str(arr)+"\n")
+        f.write("A,"+str(arr)+"\n")
     
- 
-    #________
+
     cTime = time.time()
-    fps = 5 #1 / (cTime - pTime)
+    fps = 5 
     pTime = cTime
  
     cv2.putText(img, f'FPS: {int(fps)}', (400, 70), cv2.FONT_HERSHEY_PLAIN,

@@ -1,21 +1,11 @@
-"""
-Popular algorithms that can be used for multi-class classification include:
-
-k-Nearest Neighbors.
-Decision Trees.
-Naive Bayes.
-Random Forest.
-Gradient Boosting.
-"""
-
 import time
+from unittest import result
 import cv2
+import sklearn
 import HandTrackingModule as htm
 import math
 from sklearn import feature_selection, svm,tree,neighbors
 import pandas as pd
-from sklearn.preprocessing import StandardScaler,LabelEncoder
-
 import joblib
 
 wCam, hCam = 640, 480
@@ -28,18 +18,15 @@ pTime = 0
  
 detector = htm.handDetector()
 
-###################################jz pt
+model = joblib.load('hand_model_k5_2.pkl')
 
-dataset = pd.read_csv('newData.csv')
-x = dataset[['0','2', '3', '4', '6', '7', '8', '10', '11', '12', '14', '15', '16', '18', '19', '20']].values
-y = dataset['letter'].values
-# model=svm.SVC().fit(x,y)  #clf = SVC(C=1.0, kernel='rbf').fit(X_train,y_train)
-model=neighbors.KNeighborsClassifier().fit(x,y)
-# model=tree.DecisionTreeClassifier().fit(x,y)
 
-joblib.dump(model, 'hand_model.pkl')
+confidence = 0
+previous_pred=""
+resultString=""
 
 while True:
+    
     success, img = cap.read()
     img = detector.findHands(img)
 
@@ -49,16 +36,10 @@ while True:
 
     lmList = detector.findPosition(img, draw=False)
     test=[]
-    pred=["Nope"]
+    pred=[""]
     if lmList!=[]:
         arr=[]
-        # for i in range(1,21):
-        #     arr.append( int(math.sqrt((lmList[i][0]-lmList[0][0])**2 + (lmList[i][1]-lmList[0][1])**2)))
-        
-        # f = open("data.txt", "a")
-        # f.write("B,"+str(arr)+"\n")
 
-        #_______
         m=lmList.pop(9)
 
         featureNotSelect=[1,5,13,17]
@@ -74,24 +55,37 @@ while True:
 
         test.append(arr)
         pred=model.predict(test)
+        
+        if(previous_pred==pred[0]):
+            confidence+=1
+        else:
+            confidence=0
+        if confidence==20:
+            confidence=0
+            if pred[0]=='!':
+                resultString=resultString[:-1]
+            else:
+                resultString+=pred[0]
 
-
+        previous_pred=pred[0]
     #________
     cTime = time.time()
-    fps = 1 / (cTime - pTime)
+    fps =5 
     pTime = cTime
  
     cv2.putText(img, f'FPS: {int(fps)}', (400, 70), cv2.FONT_HERSHEY_PLAIN,
                 3, (255, 0, 0), 3)
-    
 
+
+    
+    cv2.putText(img,resultString,(10,300),cv2.FONT_HERSHEY_COMPLEX ,1, (18,5,255), 1, cv2.LINE_AA )
     cv2.putText(img,pred[0],(10,50),cv2.FONT_HERSHEY_COMPLEX ,2, (18,5,255), 2, cv2.LINE_AA )
 
     cv2.imshow("Image", img)
     key = cv2.waitKey(1)
     if(key == ord('q')):                           # press 'q' to quit
         break
-
+print(sklearn.__version___)
 cap.release()
 cv2.destroyAllWindows()
 
